@@ -5,6 +5,7 @@ import threading as thr
 import numpy as np
 import datetime as dt
 import os
+import json
 
 #---------------------------------------------------------------------------------------------
 
@@ -123,7 +124,17 @@ class Simulation(thr.Thread):
             'Door Status': [door_status]
         }
         data = pd.DataFrame(read_list, columns=['Temperature', 'Status', 'Fan', 'Date', 'Time', 'Door Status'])
-        data.to_csv(path_data_read, index=False)
+        data.to_csv(path_data_read, mode='a', header=False, index=False)  # Append without header
+        self.generate_data_json()  # Add this line to generate data.json
+
+    def generate_data_json(self):
+        df = pd.read_csv(path_data_read)
+        if df.empty:
+            print("No data available to write to data.json")
+            return
+        latest_data = df.iloc[-1].to_dict()  # Get the latest row
+        with open('frontend/data.json', 'w') as json_file:
+            json.dump(latest_data, json_file)
 
     def finalize_simulation(self):
         self.fan_status = 'OFF'
