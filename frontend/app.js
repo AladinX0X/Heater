@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const aboutButton = document.getElementById("aboutButton");
     const contactButton = document.getElementById("contactButton");
     const infoText = document.getElementById("infoText");
-    
+
     const currentTemp = document.getElementById("currentTemp");
     const status = document.getElementById("status");
     const doorStatus = document.getElementById("doorStatus");
@@ -26,11 +26,26 @@ document.addEventListener("DOMContentLoaded", function () {
             maintainAspectRatio: false,
             scales: {
                 x: {
-                    type: "linear",
-                    position: "bottom"
+                    type: "time",
+                    time: {
+                        unit: 'second',  // Ensure it matches the data frequency
+                        tooltipFormat: 'HH:mm:ss',
+                        displayFormats: {
+                            second: 'HH:mm:ss',
+                            minute: 'HH:mm'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Time'
+                    }
                 },
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Temperature (°C)'
+                    }
                 }
             }
         }
@@ -45,20 +60,28 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     contactButton.addEventListener("click", function () {
-        infoText.textContent = "Email: airconditioner@fraunhofer.com\nPhone: (123) 456-7890";
+        infoText.textContent = "Email: airconditioner@simulation.com\nPhone: (123) 456-7890";
     });
 
     function updateData() {
         fetch("/data.json")
-            .then(response => response.json())
+            .then(response => {
+                console.log("Fetching data.json...");
+                return response.json();
+            })
             .then(data => {
+                console.log("Data fetched:", data);
+
                 currentTemp.textContent = `${data.Temperature} °C`;
                 status.textContent = data.Status;
-                doorStatus.textContent = data.DoorOpen;
+                doorStatus.textContent = data['Door Status'];
                 currentTime.textContent = data.Time;
 
-                chart.data.labels.push(data.Time);
-                chart.data.datasets[0].data.push(data.Temperature);
+                const timeNow = new Date();  // Use the current time for labels
+                chart.data.labels.push(timeNow);
+                chart.data.datasets[0].data.push(parseFloat(data.Temperature));
+
+                console.log("Chart data:", chart.data);
                 chart.update();
             })
             .catch(error => {
