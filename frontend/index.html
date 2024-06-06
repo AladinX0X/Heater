@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Air Conditioning Server</title>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="1920px-Fraunhofer-Gesellschaft_2009_logo.svg_.png" alt="Logo" class="logo-image">
+        </div>
+        <nav class="nav">
+            <ul>
+                <li><button id="homeButton">Home</button></li>
+                <li><button id="aboutButton">About</button></li>
+                <li><button id="contactButton">Contact</button></li>
+            </ul>
+        </nav>
+    </header>
+    <div class="content">
+        <div class="greeting">
+            <h2>Welcome to Air Conditioning Server!</h2>
+        </div>
+        <div class="info">
+            <p id="infoText"></p>
+        </div>
+        <div class="temperature">
+            <label for="currentTemp">Current Temperature in °C:</label>
+            <span id="currentTemp"></span>
+        </div>
+        <div class="status">
+            <label for="status">Status:</label>
+            <span id="status">--</span>
+        </div>
+        <div class="door">
+            <label for="doorStatus">Door Status:</label>
+            <span id="doorStatus">--</span>
+        </div>
+        <div class="time">
+            <label for="currentTime">Time:</label>
+            <span id="currentTime">--</span>
+        </div>
+        <div class="Date">
+            <label for="Date">Date:</label>
+            <span id="Date">--</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="chart"></canvas>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
