@@ -6,7 +6,6 @@ import numpy as np
 import datetime as dt
 import os
 import json
-
 #---------------------------------------------------------------------------------------------
 
 path_data_read = os.path.join(os.path.curdir, 'SimulationData_read.csv')
