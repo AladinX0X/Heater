@@ -48,7 +48,6 @@ def update_opcua_variables():
         pass
     except FileNotFoundError:
         pass
-
 try:
     while True:
         update_opcua_variables()
