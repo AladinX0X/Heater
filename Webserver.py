@@ -12,8 +12,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.path = '/app.js'
         elif self.path == '/styles.css':
             self.path = '/styles.css'
-        elif self.path == '/1920px-Fraunhofer-Gesellschaft_2009_logo.svg_.png':
-            self.path = '/1920px-Fraunhofer-Gesellschaft_2009_logo.svg_.png'
+        elif self.path == '/logo.png':
+            self.path = '/logo.png'
         elif self.path == '/data.json':
             self.path = '/data.json'
         super().do_GET()
