@@ -23,6 +23,7 @@ if os.path.isfile(path_data):
 else:
     df.to_csv(path_data, mode='w', header=True, index=False)
 
+
 class Simulation(thr.Thread):
     
     def __init__(self, target_temp, use_fan, auto_timer=900):
