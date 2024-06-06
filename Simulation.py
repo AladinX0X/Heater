@@ -98,16 +98,18 @@ class Simulation(thr.Thread):
         # Randomly change door status with a small probability
         if not self.door_open and np.random.rand() < 0.05:  # 5% chance to open the door every second
             self.door_open = True
-            self.adjust_temperature_due_to_door()
-            sleep(np.random.uniform(5, 8))  # Keep the door open for 5-8 seconds
+            door_open_duration = np.random.uniform(5, 8)
+            for _ in range(int(door_open_duration)):
+                self.adjust_temperature_due_to_door()
+                sleep(1)
             self.door_open = False
-            self.adjust_temperature_due_to_door()
 
     def adjust_temperature_due_to_door(self):
         if self.door_open:
-            self.temperature += np.random.uniform(3, 6)  # Rapid temperature increase if door is opened
+            self.temperature += np.random.uniform(0.5, 1)  # Incremental temperature increase if door is opened
         else:
-            self.temperature -= np.random.uniform(1, 3)  # Temperature decreases somewhat when door is closed
+            self.temperature -= np.random.uniform(0.1, 0.3)  # Incremental temperature decrease when door is closed
+        self.record_data(dt.datetime.now().strftime('%H:%M:%S'), dt.datetime.now().strftime('%Y-%m-%d'), str(self.temperature)[:str(self.temperature).find('.') + 2])
 
     def record_data(self, time_form, date_form, printed_temp):
         door_status = 'Open' if self.door_open else 'Closed'
