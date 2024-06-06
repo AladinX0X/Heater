@@ -4,14 +4,14 @@ from time import sleep
 import threading as thr
 import numpy as np
 import datetime as dt
-import sys
 import os
+
 #---------------------------------------------------------------------------------------------
 
 path_data_read = os.path.join(os.path.curdir, 'SimulationData_read.csv')
 path_data = os.path.join(os.path.curdir, 'SimulationData.csv')
 
-df = pd.DataFrame(columns=['Temperature', 'Status', 'Fan', 'Date', 'Time', 'DoorOpen'])
+df = pd.DataFrame(columns=['Temperature', 'Status', 'Fan', 'Date', 'Time', 'Door Status'])
 
 if os.path.isfile(path_data_read):
     df.to_csv(path_data_read, mode='a', header=True, index=False)  
@@ -32,7 +32,7 @@ class Simulation(thr.Thread):
         self.auto_timer = auto_timer
         self.temperature = np.random.uniform(20, 25)
         self.status = 'OFF'
-        self.fan_status = 'OFF' if use_fan else 'OFF'
+        self.fan_status = 'ON' if use_fan else 'OFF'
         self.door_open = False
         self.result_list = []
 
@@ -42,24 +42,49 @@ class Simulation(thr.Thread):
         self.simulation_process()
 
     def simulation_process(self):
+        hysteresis = 0.5
+        off_time = 10
+        
         try:
             while True:
                 time_form = dt.datetime.now().strftime('%H:%M:%S')
                 date_form = dt.datetime.now().strftime('%Y-%m-%d')
                 printed_temp = str(self.temperature)[:str(self.temperature).find('.') + 2]
                 
-                if self.temperature < self.target_temp:
-                    self.temperature += np.random.uniform(0.1, 0.3)
-                elif self.temperature > self.target_temp:
-                    self.temperature -= np.random.uniform(0.1, 0.3)
+                # External factors
+                external_temp = np.random.uniform(15, 30)
+                time_of_day = dt.datetime.now().hour
                 
-                if self.temperature == 25 and not self.door_open:
-                    self.simulate_door_open()
-                    continue
+                # Simulate a gradual drift over time
+                drift = np.sin(time.time() / 3600) * 0.05  # Small drift over time
+                
+                # Adjust temperature based on target and external factors
+                if self.status == 'ON':
+                    if self.temperature < self.target_temp + hysteresis:
+                        self.temperature += np.random.normal(0.15, 0.05)  # Random normal increase
+                    else:
+                        self.status = 'OFF'
+                        sleep(off_time)
+                elif self.status == 'OFF':
+                    if self.temperature > self.target_temp - hysteresis:
+                        self.temperature -= np.random.normal(0.15, 0.05)  # Random normal decrease
+                    else:
+                        self.status = 'ON'
 
-                if self.temperature != float(printed_temp) or self.status != self.status or self.fan_status != self.fan_status or self.door_open:
-                    self.record_data(time_form, date_form, printed_temp)
+                # Apply external factors
+                if self.door_open:
+                    self.temperature += np.random.normal(0.3, 0.1)  # More rapid increase if door is open
+                else:
+                    self.temperature += (external_temp - self.temperature) * 0.01  # Gradual adjustment towards external temp
                 
+                # Apply drift
+                self.temperature += drift
+                
+                # Simulate door status change periodically
+                self.simulate_random_door_status()
+            
+                self.record_data(time_form, date_form, printed_temp)
+            
                 self.result_list.append([printed_temp, self.status, self.fan_status, date_form, time_form])
                 sleep(1)
 
@@ -69,32 +94,23 @@ class Simulation(thr.Thread):
         finally:
             self.finalize_simulation()
 
-    def simulate_door_open(self):
-        print(f"Door or window opened at: {dt.datetime.now().strftime('%H:%M:%S')}")
-        prev_temperature = self.temperature
-        prev_status = self.status
-        self.door_open = True
-        self.temperature += np.random.uniform(3, 6)
-        self.status = 'OFF'
-        
-        time_form = dt.datetime.now().strftime('%H:%M:%S')
-        date_form = dt.datetime.now().strftime('%Y-%m-%d')
-        printed_temp = str(self.temperature)[:str(self.temperature).find('.') + 2]
-        self.record_data(time_form, date_form, printed_temp, door_open=True)
-        
-        sleep(15)
-        
-        self.temperature = prev_temperature
-        self.status = prev_status
-        self.door_open = False
-        
-        time_form = dt.datetime.now().strftime('%H:%M:%S')
-        date_form = dt.datetime.now().strftime('%Y-%m-%d')
-        printed_temp = str(self.temperature)[:str(self.temperature).find('.') + 2]
-        self.record_data(time_form, date_form, printed_temp, door_open=False)
+    def simulate_random_door_status(self):
+        # Randomly change door status with a small probability
+        if not self.door_open and np.random.rand() < 0.05:  # 5% chance to open the door every second
+            self.door_open = True
+            self.adjust_temperature_due_to_door()
+            sleep(np.random.uniform(5, 8))  # Keep the door open for 5-8 seconds
+            self.door_open = False
+            self.adjust_temperature_due_to_door()
 
-    def record_data(self, time_form, date_form, printed_temp, door_open=False):
-        door_status = 'Open' if door_open else 'Closed'
+    def adjust_temperature_due_to_door(self):
+        if self.door_open:
+            self.temperature += np.random.uniform(3, 6)  # Rapid temperature increase if door is opened
+        else:
+            self.temperature -= np.random.uniform(1, 3)  # Temperature decreases somewhat when door is closed
+
+    def record_data(self, time_form, date_form, printed_temp):
+        door_status = 'Open' if self.door_open else 'Closed'
         read_list = {
             'Temperature': [printed_temp],
             'Status': [self.status],
